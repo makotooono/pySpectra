@@ -23,7 +23,7 @@ class Plotter(QGLWidget):
 
     def __init__(self,
             plot_range=(-1, 1, -1, 1), 
-            islog=False,
+            ismel=False,
             ispolygon=False,
             parent=None):
         super(Plotter, self).__init__(parent)
@@ -33,7 +33,7 @@ class Plotter(QGLWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.plot_range = plot_range
-        self.islog = islog
+        self.ismel = islog
         self.ispolygon = ispolygon
         self.grid_width = 1
         self.plot_width = 2
@@ -72,38 +72,38 @@ class Plotter(QGLWidget):
         glLineWidth(self.plot_width)
         glBegin(GL_LINE_STRIP)
         for x, y in self._data:
-            if self.islog:
-                x = 1000 * log(x/1000+1, 2)
+            if self.ismel:
+                x = helz2mel(x)
             glVertex2f(x, y)
         glEnd()
 
     def _draw_data_polygon(self):
         glBegin(GL_TRIANGLE_STRIP)
-        r = self.plot_range
-        glVertex2f(r[0], r[2])
+        xmin, xmax, ymin, ymax = self.plot_range
+        glVertex2f(xmin, ymin)
         for i, (x, y) in enumerate(self._data[:-1]):
             x2, _ = self._data[i+1]
-            if self.islog:
-                x = 1000 * log(x/1000+1, 2)
-                x2 = 1000 * log(x2/1000+1, 2)
+            if self.ismel:
+                x = helz2mel(x)
+                x2 = helz2mel(x2)
             glVertex2f(x, y)
-            glVertex2f(x2, r[2])
+            glVertex2f(x2, ymin)
         glVertex2f(*self._data[-1])
         glEnd()
 
     def _draw_grid(self):
         glLineWidth(self.grid_width)
         glColor(0.5, 0.5, 0.5)
-        r = self.plot_range
-        xstep = 10 ** max(1, int((log10(r[1])-1)))
-        ystep = 10 ** max(1, int((log10(r[3]))))
+        xmin, xmax, ymin, ymax= self.plot_range
+        xstep = 10 ** max(1, int((log10(xmax)-1)))
+        ystep = 10 ** max(1, int((log10(ymax))))
         glBegin(GL_LINES)
-        for x in range(int(r[0]), int(r[1]), xstep):
-            glVertex2f(x, r[2])
-            glVertex2f(x, r[3])
-        for y in range(int(r[2]), int(r[3]), ystep):
-            glVertex2f(r[0], y)
-            glVertex2f(r[1], y)
+        for x in range(int(xmin), int(xmax), xstep):
+            glVertex2f(x, ymin)
+            glVertex2f(x, ymax)
+        for y in range(int(ymin), int(ymax), ystep):
+            glVertex2f(xmin, y)
+            glVertex2f(xmax, y)
         glEnd()
         glColor(1,1,1)
 
@@ -267,7 +267,7 @@ class MainWindow(QMainWindow):
         #ケプストラムビューワー
         self._spectle_viewer = Plotter()
         self._spectle_viewer.plot_range = (0, helz2mel(22050), 0, 40)
-        self._spectle_viewer.islog = True
+        self._spectle_viewer.ismel = True
 
         #入力デバイス洗濯用コンボボックス
         self._input_combo = QComboBox()
