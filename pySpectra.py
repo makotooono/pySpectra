@@ -33,7 +33,7 @@ class Plotter(QGLWidget):
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.plot_range = plot_range
-        self.ismel = islog
+        self.ismel = ismel
         self.ispolygon = ispolygon
         self.grid_width = 1
         self.plot_width = 2
