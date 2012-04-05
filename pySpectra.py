@@ -2,8 +2,10 @@
 import sys
 import struct
 from math import * 
-from scipy.fftpack import fft, ifft
+import ctypes
 import numpy as np
+from ctypes import util
+from scipy.fftpack import fft, ifft
 from PySide.QtMultimedia import *
 from PySide.QtGui import *
 from PySide.QtCore import *
@@ -45,6 +47,7 @@ class Plotter(QGLWidget):
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
         glEnable(GL_POLYGON_SMOOTH)
         glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
+        
         glEnable(GL_BLEND)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
@@ -52,7 +55,7 @@ class Plotter(QGLWidget):
         glViewport(0, 0, w, h)
 
     def paintGL(self):
-        glClear(GL_COLOR_BUFFER_BIT)
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         glLoadIdentity()
         ortho_range = self.plot_range + (-1, 1)
         glOrtho(*ortho_range)
@@ -299,15 +302,14 @@ class MainWindow(QMainWindow):
     def _setup_toolbar(self):
         self._toolbar = self.addToolBar("DISP MODE")
 
-        self._log_spectle_action = QAction("LOG SPECTLE", self)
+        self._power_spectle_action = QAction("POWER", self)
+        self._power_spectle_action.setCheckable(True)
+        self._power_spectle_action.triggered.connect(self._set_power_spectle_mode)
+        self._log_spectle_action = QAction("LOG", self)
         self._log_spectle_action.setCheckable(True)
         self._log_spectle_action.triggered.connect(self._set_log_spectle_mode)
 
-        self._power_spectle_action = QAction("POWER SPECTLE", self)
-        self._power_spectle_action.setCheckable(True)
-        self._power_spectle_action.triggered.connect(self._set_power_spectle_mode)
-
-        self._envelope_action = QAction("SPECTLE ENV", self)
+        self._envelope_action = QAction("ENVELOPE", self)
         self._envelope_action.setCheckable(True)
         self._envelope_action.triggered.connect(self._set_envelope_mode)
 
